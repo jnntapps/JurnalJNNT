@@ -6,15 +6,19 @@ import SubmissionForm from './components/SubmissionForm';
 import SubmissionList from './components/SubmissionList';
 import { Submission, DashboardStats } from './types';
 import { getSubmissions, saveSubmission, calculateStats } from './services/storageService';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, RotateCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [stats, setStats] = useState<DashboardStats>({ totalOfficers: 0, totalTitles: 0 });
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showIndicator = true) => {
+    if (showIndicator) setLoading(true);
     try {
+      // Mensimulasikan sedikit lengah waktu untuk memberi maklum balas visual kepada pengguna
+      await new Promise(resolve => setTimeout(resolve, 500));
       const data = await getSubmissions();
       setSubmissions(data);
       setStats(calculateStats(data));
@@ -22,12 +26,18 @@ const App: React.FC = () => {
       console.error("Failed to load data", error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    loadData(false); // Jangan tunjuk spinner besar, tunjuk animasi pada butang sahaja
+  };
 
   const handleSubmit = async (data: Submission) => {
     const success = await saveSubmission(data);
@@ -51,9 +61,21 @@ const App: React.FC = () => {
         {/* Input Form */}
         <SubmissionForm onSubmit={handleSubmit} />
 
-        {/* Data List Section Header */}
-        <div className="mt-10 mb-4 px-1">
+        {/* Data List Section Header with Refresh Button */}
+        <div className="mt-10 mb-4 px-1 flex justify-between items-center">
            <h3 className="text-lg font-bold text-slate-800">Senarai Rekod</h3>
+           <button 
+             onClick={handleRefresh}
+             disabled={isRefreshing || loading}
+             className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full transition-all active:scale-95 ${
+               isRefreshing 
+                 ? 'bg-slate-100 text-slate-400' 
+                 : 'bg-white text-slate-600 shadow-sm border border-slate-200 hover:bg-slate-50'
+             }`}
+           >
+             <RotateCw size={12} className={isRefreshing ? 'animate-spin text-yellow-500' : ''} />
+             {isRefreshing ? 'Sedang Sync...' : 'Sync Data'}
+           </button>
         </div>
 
         {/* Data List */}
