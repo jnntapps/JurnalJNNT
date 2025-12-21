@@ -10,14 +10,13 @@ import { ExternalLink, RotateCw } from 'lucide-react';
 
 const App: React.FC = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({ totalOfficers: 0, totalTitles: 0 });
+  const [stats, setStats] = useState<DashboardStats>({ totalTitles: 0, totalIndividu: 0, totalKumpulan: 0 });
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadData = useCallback(async (showIndicator = true) => {
     if (showIndicator) setLoading(true);
     try {
-      // Mensimulasikan sedikit lengah waktu untuk memberi maklum balas visual kepada pengguna
       await new Promise(resolve => setTimeout(resolve, 500));
       const data = await getSubmissions();
       setSubmissions(data);
@@ -36,7 +35,7 @@ const App: React.FC = () => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    loadData(false); // Jangan tunjuk spinner besar, tunjuk animasi pada butang sahaja
+    loadData(false);
   };
 
   const handleSubmit = async (data: Submission) => {
